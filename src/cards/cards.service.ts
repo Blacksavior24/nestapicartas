@@ -17,8 +17,14 @@ export class CardsService {
     });
   }
 
-  findAll() {
-    return this.prisma.carta.findMany();
+  async findAll() {
+    const cartas = await this.prisma.carta.findMany();
+    return cartas.map(carta=> ({
+      ...carta,
+      fechaIngreso: carta.fechaIngreso?.toISOString().split('T')[0],
+      fechaEnvio: carta.fechaEnvio?.toISOString().split('T')[0],
+      fechadevencimiento: carta.fechadevencimiento?.toISOString().split('T')[0]
+    }))
   }
 
   findOne(id: number) {
@@ -41,8 +47,12 @@ export class CardsService {
   }
 
   async createReceivedCard(receivedCardDto: ReceivedCardDto) {
+    console.log('datos', receivedCardDto)
     return this.prisma.carta.create({
-      data: receivedCardDto
+      data: {
+        ...receivedCardDto,
+        devuelto: false
+      }
     });
   }
 
@@ -65,6 +75,36 @@ export class CardsService {
       where: { id },
       data: assignmentCardDto
     })
+  }
+
+
+  async findAllEmision() {
+    const cartas = await this.prisma.carta.findMany({
+      where: {
+        emision: true
+      }
+    });
+    return cartas.map(carta=> ({
+      ...carta,
+      fechaIngreso: carta.fechaIngreso?.toISOString().split('T')[0],
+      fechaEnvio: carta.fechaEnvio?.toISOString().split('T')[0],
+      fechadevencimiento: carta.fechadevencimiento?.toISOString().split('T')[0]
+    }))
+  }
+
+  async findAllPendientes(subAreaId: number) {
+    const cartas = await this.prisma.carta.findMany({
+      where: {
+        estado: 'Pendiente',
+        subAreaId: subAreaId
+      }
+    });
+    return cartas.map(carta=> ({
+      ...carta,
+      fechaIngreso: carta.fechaIngreso?.toISOString().split('T')[0],
+      fechaEnvio: carta.fechaEnvio?.toISOString().split('T')[0],
+      fechadevencimiento: carta.fechadevencimiento?.toISOString().split('T')[0]
+    }))
   }
 
 }

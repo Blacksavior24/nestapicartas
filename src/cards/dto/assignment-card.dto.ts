@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsDate, IsOptional, IsString } from "class-validator";
 
 export class AssignmentCardDto {
@@ -18,13 +18,14 @@ export class AssignmentCardDto {
     @IsString()
     codigoEnviado: string;
 
-    @ApiProperty({
+      @ApiProperty({
         description: 'Fecha de ingreso de la carta',
-        example: '03-02-2024'
-    })
-    @IsDate()
-    @Type(() => Date)
-    fechaEnvio: string;
+        example: '2025-02-03',
+      })
+      @IsDate()
+      @Type(() => Date)
+      @Transform(({ value }) => value.toISOString().split('T')[0]) // Transforma el DateTime a solo la fecha YYYY-MM-DD
+    fechaEnvio: Date;
 
     @ApiPropertyOptional({
         description: 'Asunto del cargo',

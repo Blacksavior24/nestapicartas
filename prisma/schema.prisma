@@ -110,6 +110,8 @@ model Carta {
   cartaEnviada       String?
   comentarioCargo    String?
 
+  //Indica que han sido emitidas por el admin
+  emision           Boolean         @default(false)
 
 }
 

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString, IsArray, IsNumber } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsOptional, IsString, IsArray, IsNumber, IsDate } from 'class-validator';
 
 export class AssignedCardDto {
   @ApiPropertyOptional({
@@ -85,8 +86,10 @@ export class AssignedCardDto {
     example: '2023-12-31',
   })
   @IsOptional()
-  @IsString()
-  fechadevencimiento?: string;
+    @IsDate()
+    @Type(() => Date)
+    @Transform(({ value }) => value.toISOString().split('T')[0]) // Transforma el DateTime a solo la fecha YYYY-MM-DD
+  fechadevencimiento?: Date;
 
   @ApiPropertyOptional({
     description: 'Indica si la carta es informativa (opcional)',

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsDate, IsOptional, IsString } from 'class-validator';
 
 export class ReceivedCardDto {
@@ -42,7 +42,8 @@ export class ReceivedCardDto {
     description: 'Fecha de ingreso de la carta',
     example: '03-02-2024'
   })
+  @Transform(({ value }) => new Date(value)) // Convierte el string a Date
   @IsDate()
   @Type(()=>Date)
-  fechaIngreso: string;
+  fechaIngreso: Date;
 }

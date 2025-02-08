@@ -4,8 +4,11 @@ export const fileNamer = (req: Express.Request, file: Express.Multer.File, callb
     if( !file ) return callback(new Error('File is empty'), false);
 
     const fileExtension = file.mimetype.split('/')[1];
+    const originalname = file.originalname;
 
-    const fileName = `${ uuid() }.${fileExtension}`;
+    const sanitizedName = originalname.replace(/[^a-zA-Z0-9-_\.]/g, '_')
+
+    const fileName = `${uuid()}-${sanitizedName}.${fileExtension}`;
 
     callback(null, fileName)
 }

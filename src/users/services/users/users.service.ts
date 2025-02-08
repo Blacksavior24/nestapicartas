@@ -45,7 +45,7 @@ export class UsersService {
         take: Number(limit),
         skip,
         orderBy: { id: 'asc' },
-        include: {rol: true}
+        include: {rol: true, area: true, subArea: true}
       }),
       this.prisma.usuario.count({ where }),
     ]);

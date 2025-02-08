@@ -28,6 +28,22 @@ export class CardsController {
     return this.cardsService.findAll();
   }
 
+  @Get('emitidos')
+  @ApiOperation({ summary: 'Obtener todas las Cartas Emitidas' })
+  @ApiResponse({ status: 200, description: 'Cartas obtenidas exitosamente' })
+  @ApiResponse({ status: 404, description: 'No se encontraron Cartas' })
+  findAllEmision() {
+    return this.cardsService.findAllEmision();
+  }
+
+  @Get('pending/:subareaId')
+  @ApiOperation({ summary: 'Obtener todas las Cartas Emitidas' })
+  @ApiResponse({ status: 200, description: 'Cartas obtenidas exitosamente' })
+  @ApiResponse({ status: 404, description: 'No se encontraron Cartas' })
+  findAllPendientes(@Param('subareaId') subareaId: string) {
+    return this.cardsService.findAllPendientes(+subareaId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener una Carta por ID' })
   @ApiResponse({ status: 200, description: 'Carta obtenida exitosamente' })
