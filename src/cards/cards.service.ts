@@ -57,14 +57,31 @@ export class CardsService {
         }))
       }
     }
-    if (filters) {
+  // Filtros adicionales (filters)
+  if (filters) {
+    const filterConditions = Object.keys(filters)
+      .filter((key) => filters[key] !== '' && filters[key] !== null && filters[key] !== undefined) // Ignorar filtros vacíos
+      .map((key) => {
+        // Convertir fechaIngreso a un objeto Date si es necesario
+        if (key === 'fechaIngreso' && filters[key]) {
+          return {
+            [key]: new Date(filters[key]), // Convertir a DateTime
+          };
+        }
+        return {
+          [key]: filters[key],
+        };
+      });
+
+    // Solo agregar AND si hay condiciones de filtro válidas
+    if (filterConditions.length > 0) {
       where = {
         ...where,
-        AND: Object.keys(filters).map((key)=>({
-          [key]: filters[key]
-        }))
-      }
+        AND: filterConditions,
+      };
     }
+  }
+    console.log("where>>", where)
 
     const total = await this.prisma.carta.count({where})
 
@@ -72,7 +89,7 @@ export class CardsService {
       where,
       skip: (page-1) * Number(limit),
       take: Number(limit),
-      orderBy: {id: 'asc'},
+      orderBy: {id: 'desc'},
       include: {cartaAnterior: true, respuestas: true, areaResponsable: true, subArea: true, temaRelacion: true}
     })
 
@@ -129,6 +146,42 @@ export class CardsService {
     return this.prisma.carta.delete({
       where: { id },
     });
+  }
+
+  async reportsCards(id: bigint) {
+    const getTrazabilidad = async (cartaId: bigint): Promise<any> => {
+      const carta = await this.prisma.carta.findUnique({
+        where: { id: cartaId },
+        include: { cartaAnterior: true }, // Incluir la carta anterior
+      });
+  
+      if (!carta) {
+        return null; // Si no existe la carta, retornar null
+      }
+  
+      // Si existe una carta anterior, obtener su trazabilidad recursivamente
+      if (carta.cartaAnterior) {
+        carta.cartaAnterior = await getTrazabilidad(carta.cartaAnterior.id);
+      }
+  
+      return carta;
+    };
+  
+    // Obtener la trazabilidad de la carta solicitada
+    const trazabilidad = await getTrazabilidad(id);
+  
+    // Formatear las fechas
+    const formatDates = (carta) => {
+      return {
+        ...carta,
+        fechaIngreso: carta.fechaIngreso?.toISOString().split('T')[0],
+        fechaEnvio: carta.fechaEnvio?.toISOString().split('T')[0],
+        fechadevencimiento: carta.fechadevencimiento?.toISOString().split('T')[0],
+        cartaAnterior: carta.cartaAnterior ? formatDates(carta.cartaAnterior) : null, // Formatear recursivamente
+      };
+    };
+    return formatDates(trazabilidad);
+    
   }
 
   async createReceivedCard(receivedCardDto: ReceivedCardDto) {

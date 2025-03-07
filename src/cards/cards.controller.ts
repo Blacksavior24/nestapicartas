@@ -29,6 +29,15 @@ export class CardsController {
     return this.cardsService.findAll(paginationDto);
   }
 
+  @Get('report/:id')
+  @ApiOperation({ summary: 'Obtener trazabilidad de una carta' })
+  @ApiResponse({ status: 200, description: 'Cartas obtenidas exitosamente' })
+  @ApiResponse({ status: 404, description: 'No se encontraron Cartas' })
+  reportCards(@Param('id') id:string) {
+    const idBigInt = BigInt(id)
+    return this.cardsService.reportsCards(idBigInt);
+  }
+
   @Get('emitidos')
   @ApiOperation({ summary: 'Obtener todas las Cartas Emitidas' })
   @ApiResponse({ status: 200, description: 'Cartas obtenidas exitosamente' })
