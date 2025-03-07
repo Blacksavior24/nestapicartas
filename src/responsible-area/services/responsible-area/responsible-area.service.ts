@@ -18,7 +18,10 @@ export class ResponsibleAreaService {
 
   async findAll() {
     return this.prisma.areaResponsable.findMany({
-      include: { subAreas: true }
+      include: { subAreas: true },
+      orderBy: {
+        id: 'desc'
+      }
     })
   }
 

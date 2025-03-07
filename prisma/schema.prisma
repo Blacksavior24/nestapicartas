@@ -78,7 +78,7 @@ model Carta {
   esConfidencial    Boolean
   devuelto          Boolean         @default(false)
   estado            String          @default("Ingresado")
-  referencia        String?
+  //referencia        String?
   resumenRecibido   String?
   tema              String?
   nivelImpacto      String?
@@ -112,6 +112,14 @@ model Carta {
 
   //Indica que han sido emitidas por el admin
   emision           Boolean         @default(false)
+
+  // Relacion referencial con una carta anterior
+  referencia        BigInt?         // Campo opcional para el ID de la carta anterior
+  cartaAnterior     Carta?          @relation("CartaRespuesta", fields: [referencia], references: [id]) // Relación con la carta anterior
+  respuestas        Carta[]         @relation("CartaRespuesta") // Relación inversa para las cartas que responden a esta
+
+  // Recibido o Enviado
+  tipo     String @default("Recibido")
 
 }
 

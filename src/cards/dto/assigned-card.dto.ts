@@ -11,13 +11,6 @@ export class AssignedCardDto {
   @IsString()
   estado?: string;
 
-  @ApiPropertyOptional({
-    description: 'Referencia de la carta (opcional)',
-    example: 'REF-001',
-  })
-  @IsOptional()
-  @IsString()
-  referencia?: string;
 
   @ApiProperty({
     description: 'Resumen del contenido recibido',

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class ReceivedCardDto {
   @ApiProperty({
@@ -38,12 +38,65 @@ export class ReceivedCardDto {
   @IsBoolean()
   esConfidencial: boolean;
 
+  @ApiProperty({ description: 'ID del área responsable de la carta', required: false })
+  @IsOptional()
+  areaResponsableId?: bigint;
+
+  @ApiProperty({ description: 'ID de la subárea de la carta', required: false })
+  @IsOptional()
+  subAreaId?: bigint;
+
+  @ApiProperty({ description: 'ID de la empresa de la carta', required: false })
+  @IsOptional()
+  empresaId?: bigint;
+
+  @ApiProperty({ description: 'ID del tema relacionado con la carta', required: false })
+  @IsOptional()
+  temaId?: bigint;
+
+  @ApiProperty({ description: 'Correos en copia de la carta', type: [String], default: [] })
+  @IsArray()
+  @IsString({ each: true })
+  correosCopia: string[];
+
+  @ApiProperty({ description: 'Resumen recibido de la carta', required: false })
+  @IsOptional()
+  @IsString()
+  resumenRecibido?: string;
+
+  @ApiProperty({ description: 'Referencia a la carta anterior (opcional)', required: false })
+  @IsOptional()
+  @IsNumber()
+  referencia?: number; // Cambia a `number` si estás usando `BigInt` en el frontend o backend
+
   @ApiProperty({
     description: 'Fecha de ingreso de la carta',
     example: '03-02-2024'
   })
   @Transform(({ value }) => new Date(value)) // Convierte el string a Date
   @IsDate()
-  @Type(()=>Date)
+  @Type(() => Date)
   fechaIngreso: Date;
+
+  @ApiProperty({ description: 'Indica si la carta tiene vencimiento', default: false })
+  @IsBoolean()
+  vencimiento: boolean;
+
+  @ApiProperty({
+    description: 'Fecha de vencimiento de la carta',
+    required: false
+  })
+  @IsOptional()
+  @Transform(({ value }) => new Date(value)) // Convierte el string a Date
+  @IsDate()
+  @Type(() => Date)
+  fechadevencimiento?: Date;
+
+  @ApiProperty({ description: 'Indica si la carta es informativa', default: false })
+  @IsBoolean()
+  informativo: boolean;
+
+  @ApiProperty({ description: 'Indica si la carta es urgente', default: false })
+  @IsBoolean()
+  urgente: boolean;
 }

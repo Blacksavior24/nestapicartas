@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsArray, IsDateString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsArray, IsDateString, IsNumber } from 'class-validator';
 
 export class CreateCardDto {
   @ApiProperty({ description: 'Información del PDF de la carta' })
@@ -39,11 +39,6 @@ export class CreateCardDto {
   @IsString()
   estado: string;
 
-  @ApiProperty({ description: 'Referencia de la carta', required: false })
-  @IsOptional()
-  @IsString()
-  referencia?: string;
-
   @ApiProperty({ description: 'Resumen recibido de la carta', required: false })
   @IsOptional()
   @IsString()
@@ -58,6 +53,11 @@ export class CreateCardDto {
   @IsOptional()
   @IsString()
   nivelImpacto?: string;
+
+  @ApiProperty({ description: 'Referencia a la carta anterior (opcional)', required: false })
+  @IsOptional()
+  @IsNumber()
+  referencia?: number; // Cambia a `number` si estás usando `BigInt` en el frontend o backend
 
   @ApiProperty({ description: 'Correos en copia de la carta', type: [String], default: [] })
   @IsArray()

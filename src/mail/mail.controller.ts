@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { SendMailDto } from './dto/send-mail.dto';
+import { UrgentMailDto } from './dto/urgent-mail.dto';
 
 @Controller('mail')
 export class MailController {
@@ -14,6 +15,9 @@ export class MailController {
   }
 
   
-  
+  @Post('urgent')
+  async sendUrgentNotification(@Body() sendUrgentNotification:UrgentMailDto){
+    await this.mailService.sendUrgentNotificaciont(sendUrgentNotification)
+  } 
 } 
 

@@ -28,6 +28,9 @@ export class SubAreasService {
     return this.prisma.subArea.findMany({
       include: {
         areaResponsable: true
+      },
+      orderBy: {
+        id: 'desc'
       }
     })
   }
@@ -39,21 +42,31 @@ export class SubAreasService {
   }
 
   async update(id: number, updateSubAreaDto: UpdateSubAreaDto) {
+
+    const { areaResponsableId, ...rest } = updateSubAreaDto
     
-    const areaResponsable = await this.prisma.areaResponsable.findUnique({
-      where: { id: updateSubAreaDto.areaResponsableId}
-    })
-
-    if (!areaResponsable) {
-      throw new NotFoundException('Area responsable no encontrada')
-    }
-
-    return this.prisma.subArea.update({
-      where: { id },
-      data: {
-        ...updateSubAreaDto
+    try {
+      const areaResponsable = await this.prisma.areaResponsable.findUnique({
+        where: { id: areaResponsableId}
+      })
+  
+      if (!areaResponsable) {
+        throw new NotFoundException('Area responsable no encontrada')
       }
-    })
+  
+      return this.prisma.subArea.update({
+        where: { id },
+        data: {
+          ...rest,
+          areaResponsable: areaResponsableId? { connect: {id: areaResponsableId}}: undefined 
+        }
+      }) 
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new Error('Uno de los registros relacionados no existe')
+      }
+      throw error;
+    }
   }
 
   async remove(id: number) {

@@ -12,6 +12,7 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
 
     const hashedPassword = await bcrypt.hash(createUserDto.contraseña, 10);
+    console.log("data", createUserDto)
 
     const user = await this.prisma.usuario.create({
       data: {
@@ -25,30 +26,42 @@ export class UsersService {
 
   async findAll(paginationDto: PaginationDto) {
 
-    const { page = 1, limit = 100, search, searchBy } = paginationDto;
-    const skip = (page - 1) * Number(limit);
+    const { page, limit, search, searchBy, filters } = paginationDto;
+    
+    console.log("que recibimos", paginationDto);
+    console.log("searchBy", searchBy);
+    console.log("searchBy - tipo ", typeof(searchBy));
+    
+    let where = {}
 
-    const where = search
-      ? {
-          OR: searchBy.map((column) => ({
-            [column]: {
-              contains: search,
-              mode: "insensitive",
-            },
-          })),
-        }
-      : {};
+    if (search && searchBy) {
+      where = {
+        OR: searchBy.map((column)=>({
+          [column]: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        }))
+      }
+    }
+    if (filters) {
+      where = {
+        ...where,
+        AND: Object.keys(filters).map((key)=>({
+          [key]: filters[key]
+        }))
+      }
+    }
+    console.log(where)
 
-    const [data, total] = await Promise.all([
-      this.prisma.usuario.findMany({
-        where,
-        take: Number(limit),
-        skip,
-        orderBy: { id: 'asc' },
-        include: {rol: true, area: true, subArea: true}
-      }),
-      this.prisma.usuario.count({ where }),
-    ]);
+    const total = await this.prisma.usuario.count({where})
+    const data = await this.prisma.usuario.findMany({
+      where,
+      skip: (page -1) * Number(limit),
+      take: Number(limit),
+      orderBy: { id: 'asc' },
+      include: {rol: true, area: true, subArea: true}
+    })
 
     return {
       data,
@@ -68,12 +81,24 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    return this.prisma.usuario.update({
-      where: { id },
-      data: {
-        ...updateUserDto
-      },
-    });
+    const { areaId, subAreaId, rolId, ...rest} = updateUserDto
+    try {
+      return await this.prisma.usuario.update({
+        where: { id: id},
+        data: {
+          ...rest,
+          area: areaId? {connect: {id: areaId}}: undefined,
+          subArea: subAreaId?{connect: {id: subAreaId}}: undefined,
+          rol: rolId ? {connect: {id: rolId}}: undefined
+        },
+      })
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new Error('Uno de los registros relacionados no existe')
+      }
+      throw error;
+    }
+
   }
 
   async remove(id: number) {

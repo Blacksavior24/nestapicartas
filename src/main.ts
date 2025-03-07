@@ -9,7 +9,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.enableCors()
   app.setGlobalPrefix('api/v1');
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true
+      },
+    })
+  );
   app.useGlobalInterceptors(new BigIntInterceptor())
   //app.useGlobalFilters(new HttpExceptionFilter())
 
@@ -29,5 +36,6 @@ async function bootstrap() {
 
 
   await app.listen(process.env.PORT ?? 3003);
+  console.log(`Application is running on: ${await app.getUrl()}`)
 }
 bootstrap();

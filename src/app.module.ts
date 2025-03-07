@@ -13,7 +13,18 @@ import { FileuploadModule } from './fileupload/fileupload.module';
 import { ReceiverModule } from './receiver/receiver.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, CardsModule, CompanyModule, ThemeModule, ResponsibleAreaModule, MailModule, ConfigModule.forRoot({isGlobal: true}), FileuploadModule, ReceiverModule],
+  imports: [
+    AuthModule, 
+    UsersModule, 
+    CardsModule, 
+    CompanyModule, 
+    ThemeModule, 
+    ResponsibleAreaModule, 
+    MailModule, 
+    ConfigModule.forRoot({isGlobal: true}), 
+    FileuploadModule, 
+    ReceiverModule,
+  ],
   controllers: [],
   providers: [PrismaService],
 })

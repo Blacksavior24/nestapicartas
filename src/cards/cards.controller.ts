@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
@@ -7,6 +7,7 @@ import { ReceivedCardDto } from './dto/received-card.dto';
 import { AssignedCardDto } from './dto/assigned-card.dto';
 import { PendingCardDto } from './dto/pending-card.dto';
 import { AssignmentCardDto } from './dto/assignment-card.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('cards')
 export class CardsController {
@@ -24,8 +25,8 @@ export class CardsController {
   @ApiOperation({ summary: 'Obtener todas las Cartas' })
   @ApiResponse({ status: 200, description: 'Cartas obtenidas exitosamente' })
   @ApiResponse({ status: 404, description: 'No se encontraron Cartas' })
-  findAll() {
-    return this.cardsService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.cardsService.findAll(paginationDto);
   }
 
   @Get('emitidos')
