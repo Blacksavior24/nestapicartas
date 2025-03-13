@@ -89,7 +89,7 @@ model Carta {
   subAreaId         BigInt?
   empresa           Empresa?         @relation(fields: [empresaId], references: [id])
   empresaId         BigInt?
-  temaId            BigInt?         @unique
+  temaId            BigInt?         
   temaRelacion      Tema?           @relation(fields: [temaId], references: [id])
   usuarios          Usuario[]
   createdAt         DateTime        @default(now())
@@ -110,7 +110,7 @@ model Carta {
   cartaEnviada       String?
   comentarioCargo    String?
 
-  //Indica que han sido emitidas por el admin
+  //Usado en función de si la carta fue emitida o fue una carta que llegó
   emision           Boolean         @default(false)
 
   // Relacion referencial con una carta anterior
@@ -120,6 +120,8 @@ model Carta {
 
   // Recibido o Enviado
   tipo     String @default("Recibido")
+
+  active Boolean @default(true)
 
 }
 

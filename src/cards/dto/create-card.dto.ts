@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsArray, IsDateString, IsNumber } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsArray, IsDateString, IsNumber, IsDate } from 'class-validator';
 
 export class CreateCardDto {
   @ApiProperty({ description: 'Información del PDF de la carta' })
@@ -12,10 +13,14 @@ export class CreateCardDto {
   @IsString()
   codigoRecibido: string;
 
-  @ApiProperty({ description: 'Fecha de ingreso de la carta', type: String, format: 'date-time' })
-  @IsNotEmpty()
-  @IsDateString()
-  fechaIngreso: Date;
+  @ApiProperty({
+      description: 'Fecha de ingreso de la carta',
+      example: '03-02-2024'
+    })
+    @Transform(({ value }) => new Date(value)) // Convierte el string a Date
+    @IsDate()
+    @Type(() => Date)
+    fechaIngreso: Date;
 
   @ApiProperty({ description: 'Destinatario de la carta' })
   @IsNotEmpty()
@@ -84,9 +89,10 @@ export class CreateCardDto {
   @IsBoolean()
   vencimiento: boolean;
 
-  @ApiProperty({ description: 'Fecha de vencimiento de la carta', required: false })
   @IsOptional()
-  @IsDateString()
+  @Transform(({ value }) => new Date(value)) // Convierte el string a Date
+  @IsDate()
+  @Type(() => Date)
   fechadevencimiento?: Date;
 
   @ApiProperty({ description: 'Indica si la carta es informativa', default: false })

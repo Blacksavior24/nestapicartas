@@ -56,6 +56,7 @@ export class ReceivedCardDto {
 
   @ApiProperty({ description: 'Correos en copia de la carta', type: [String], default: [] })
   @IsArray()
+  @IsOptional()
   @IsString({ each: true })
   correosCopia: string[];
 
@@ -63,6 +64,11 @@ export class ReceivedCardDto {
   @IsOptional()
   @IsString()
   resumenRecibido?: string;
+
+  @ApiProperty({ description: 'Nivel Impacto de la carta', required: false })
+  @IsOptional()
+  @IsString()
+  nivelImpacto?: string;
 
   @ApiProperty({ description: 'Referencia a la carta anterior (opcional)', required: false })
   @IsOptional()

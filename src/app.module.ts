@@ -11,9 +11,11 @@ import { MailModule } from './mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
 import { FileuploadModule } from './fileupload/fileupload.module';
 import { ReceiverModule } from './receiver/receiver.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     AuthModule, 
     UsersModule, 
     CardsModule, 

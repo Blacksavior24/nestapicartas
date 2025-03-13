@@ -5,5 +5,7 @@ export class UrgentMailDto {
 
     cc: string[]
 
+    priority: string;
+
 
 }

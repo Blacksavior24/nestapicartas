@@ -1,12 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
 import { BigIntInterceptor } from './intercerptors/bigint.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 //import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: new ConsoleLogger({
+      
+    })
+  });
   await app.enableCors()
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(

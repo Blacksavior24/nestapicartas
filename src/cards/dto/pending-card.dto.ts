@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Min, MinLength, ValidateIf } from 'class-validator';
 
 export class PendingCardDto {
   @ApiPropertyOptional({
@@ -16,6 +16,8 @@ export class PendingCardDto {
   })
   @IsOptional()
   @IsString()
+  @MinLength(10)
+  @ValidateIf(o => o.devuelto === false) // Solo se valida si devuelto es false
   comentario?: string;
 
   @ApiPropertyOptional({
@@ -32,5 +34,7 @@ export class PendingCardDto {
   })
   @IsOptional()
   @IsString()
+  @MinLength(10)
+  @ValidateIf(o => o.devuelto === true) // Solo se valida si devuelto es true
   observaciones?: string;
 }

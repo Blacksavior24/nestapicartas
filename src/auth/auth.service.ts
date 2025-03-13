@@ -48,6 +48,7 @@ export class AuthService {
         id: true,
         nombre: true,
         email: true,
+        subAreaId: true,
         rol: {
           select: {
             nombre: true

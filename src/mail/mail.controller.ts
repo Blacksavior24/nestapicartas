@@ -11,6 +11,8 @@ export class MailController {
 
   @Post('send')
   async sendEmail(@Body() sendMailDto: SendMailDto ){
+    console.log("data", sendMailDto);
+    
     await this.mailService.sendUserConfirmation(sendMailDto);
   }
 

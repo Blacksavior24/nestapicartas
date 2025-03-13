@@ -50,8 +50,8 @@ export class CardsController {
   @ApiOperation({ summary: 'Obtener todas las Cartas Emitidas' })
   @ApiResponse({ status: 200, description: 'Cartas obtenidas exitosamente' })
   @ApiResponse({ status: 404, description: 'No se encontraron Cartas' })
-  findAllPendientes(@Param('subareaId') subareaId: string) {
-    return this.cardsService.findAllPendientes(+subareaId);
+  findAllPendientes(@Param('subareaId') subareaId: string, @Query() paginationDto: PaginationDto ) {
+    return this.cardsService.findAllPendientes(+subareaId, paginationDto);
   }
 
   @Get(':id')
