@@ -81,7 +81,10 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const { areaId, subAreaId, rolId, ...rest} = updateUserDto
+    const { areaId, subAreaId, rolId, contraseña, ...rest} = updateUserDto
+
+    const hashedPassword = await bcrypt.hash(contraseña, 10);
+
     try {
       return await this.prisma.usuario.update({
         where: { id: id},
@@ -89,7 +92,8 @@ export class UsersService {
           ...rest,
           area: areaId? {connect: {id: areaId}}: undefined,
           subArea: subAreaId?{connect: {id: subAreaId}}: undefined,
-          rol: rolId ? {connect: {id: rolId}}: undefined
+          rol: rolId ? {connect: {id: rolId}}: undefined,
+          contraseña: hashedPassword
         },
       })
     } catch (error) {

@@ -35,7 +35,7 @@ export class MailService {
       template: './notification_email',
       context: {
         message: `Hola ${email.nombre}, tienes una carta que atender`,
-        link: `http://192.168.120.139:${process.env.PORT}/api/v1`
+        link: `${process.env.HOST_API}`
       },
     };
   
@@ -61,7 +61,7 @@ export class MailService {
       template: './urgent',
       context: {
         message: `Hola ${email.nombre}, tienes una carta urgente que atender`,
-        link: `http://192.168.120.139:${process.env.PORT}/api/v1`
+        link: `${process.env.HOST_API}`
       },
       headers: {
         // Marcar como urgente (Outlook y Gmail)
