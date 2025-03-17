@@ -69,60 +69,65 @@ model Usuario {
 }
 
 model Carta {
-  id                BigInt          @id @default(autoincrement())
+  id                BigInt           @id @default(autoincrement())
   pdfInfo           String
   codigoRecibido    String
-  fechaIngreso      DateTime        @default(now())
+  fechaIngreso      DateTime         @default(now())
   destinatario      String
   asunto            String
   esConfidencial    Boolean
-  devuelto          Boolean         @default(false)
-  estado            String          @default("Ingresado")
+  devuelto          Boolean          @default(false)
+  estado            String           @default("Ingresado")
   //referencia        String?
   resumenRecibido   String?
   tema              String?
   nivelImpacto      String?
-  correosCopia      String[]        @default([])
+  correosCopia      String[]         @default([])
   areaResponsable   AreaResponsable? @relation(fields: [areaResponsableId], references: [id])
   areaResponsableId BigInt?
-  subArea           SubArea?        @relation(fields: [subAreaId], references: [id])
+  subArea           SubArea?         @relation(fields: [subAreaId], references: [id])
   subAreaId         BigInt?
   empresa           Empresa?         @relation(fields: [empresaId], references: [id])
   empresaId         BigInt?
-  temaId            BigInt?         
-  temaRelacion      Tema?           @relation(fields: [temaId], references: [id])
+  temaId            BigInt?
+  temaRelacion      Tema?            @relation(fields: [temaId], references: [id])
   usuarios          Usuario[]
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
-  vencimiento       Boolean         @default(false) // Indica si la carta tiene vencimiento
-  fechadevencimiento DateTime?      // Fecha de vencimiento (opcional)
-  informativo       Boolean         @default(false) // Indica si la carta es informativa
-  urgente           Boolean         @default(false) // Indica si la carta es urgente
-  cartaborrador     String?         // Borrador de la respuesta (opcional)
-  comentario        String?         // Comentario adicional (opcional)
-  observaciones     String?         // Observaciones si la carta se devuelve (opcional)
+  vencimiento        Boolean   @default(false) // Indica si la carta tiene vencimiento
+  fechadevencimiento DateTime? // Fecha de vencimiento (opcional)
+  informativo        Boolean   @default(false) // Indica si la carta es informativa
+  urgente            Boolean   @default(false) // Indica si la carta es urgente
+  cartaborrador      String? // Borrador de la respuesta (opcional)
+  comentario         String? // Comentario adicional (opcional)
+  observaciones      String? // Observaciones si la carta se devuelve (opcional)
 
-  codigoenviado      String?
-  fechaEnvio         DateTime?
-  asuntoEnviado      String?
-  resumenEnviado     String?
-  cartaEnviada       String?
-  comentarioCargo    String?
+  codigoenviado   String?
+  fechaEnvio      DateTime?
+  asuntoEnviado   String?
+  resumenEnviado  String?
+  cartaEnviada    String?
+  comentarioCargo String?
 
   //Usado en función de si la carta fue emitida o fue una carta que llegó
-  emision           Boolean         @default(false)
+  emision Boolean @default(false)
 
+  //Si es falso es partida, si es verdadero es carta, relevante para el llenado unicamente
+  partida Boolean @default(false)
+
+  //Campos para más archivos
+  pdfInfo2       String?   
+  pdfInfoArreglo String[] @default([])
   // Relacion referencial con una carta anterior
-  referencia        BigInt?         // Campo opcional para el ID de la carta anterior
-  cartaAnterior     Carta?          @relation("CartaRespuesta", fields: [referencia], references: [id]) // Relación con la carta anterior
-  respuestas        Carta[]         @relation("CartaRespuesta") // Relación inversa para las cartas que responden a esta
+  referencia     BigInt? // Campo opcional para el ID de la carta anterior
+  cartaAnterior  Carta?   @relation("CartaRespuesta", fields: [referencia], references: [id]) // Relación con la carta anterior
+  respuestas     Carta[]  @relation("CartaRespuesta") // Relación inversa para las cartas que responden a esta
 
   // Recibido o Enviado
-  tipo     String @default("Recibido")
+  tipo String @default("Recibido")
 
   active Boolean @default(true)
-
 }
 
 model Tema {
@@ -134,7 +139,7 @@ model Tema {
 
 model Destinatario {
   id      BigInt @id @default(autoincrement())
-  tipodoc  String
-  numdoc   String
-  nombre    String
+  tipodoc String
+  numdoc  String
+  nombre  String
 }

@@ -106,6 +106,15 @@ export class CardsController {
     return this.cardsService.pendingCard(+id, pendingCardDto)
   }
 
+  @Post('sendMail/:id')
+  @ApiOperation({ summary: 'Enviar email pendiente una Carta existente' })
+  @ApiBody({ type: PendingCardDto })
+  @ApiResponse({ status: 200, description: 'Carta enviada exitosamente' })
+  @ApiResponse({ status: 404, description: 'Carta no encontrada' })
+  async sendMail(@Param('id') id: string ){
+    return this.cardsService.sendMail(+id)
+  }
+
   @Patch('assignment/:id')
   @ApiOperation({ summary: 'Cargo de una Carta existente' })
   @ApiBody({ type: AssignmentCardDto })

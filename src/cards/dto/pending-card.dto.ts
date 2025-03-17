@@ -16,7 +16,7 @@ export class PendingCardDto {
   })
   @IsOptional()
   @IsString()
-  @MinLength(10)
+  @MinLength(10, {message: 'El comentario debe tener al menos 10 caracteres.' })
   @ValidateIf(o => o.devuelto === false) // Solo se valida si devuelto es false
   comentario?: string;
 
@@ -34,7 +34,7 @@ export class PendingCardDto {
   })
   @IsOptional()
   @IsString()
-  @MinLength(10)
+  @MinLength(10, { message: 'Las observaciones deben tener al menos 10 caracteres.' })
   @ValidateIf(o => o.devuelto === true) // Solo se valida si devuelto es true
   observaciones?: string;
 }

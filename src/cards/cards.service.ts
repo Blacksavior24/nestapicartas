@@ -209,6 +209,41 @@ export class CardsService {
       where: { id },
     });
   }
+
+  async sendMail(id: number){
+    const carta = await this.findOne(id);
+
+    const {subAreaId, correosCopia, nivelImpacto, ...rest} = carta
+
+      if (subAreaId) {
+            const subArea = await this.prisma.subArea.findUnique({
+              where: {id: subAreaId},
+              include: { usuarios: true }
+            });
+
+            if (!subArea) {
+              throw new NotFoundException('La subárea no existe');
+            }
+
+            for (const usuario of subArea.usuarios) {
+              let email = {
+                email: usuario.email,
+                nombre: usuario.nombre,
+                cc: correosCopia || [],
+                priority: nivelImpacto
+              };
+              try {
+                this.mail.sendUrgentNotificaciont(email); // No usamos await para no bloquear el flujo
+                this.logger.log(`Correo enviado a ${usuario.email} sobre la carta Urgente`);
+              } catch (error) {
+                this.logger.error(`Error al enviar correo a ${usuario.email}: ${error.message}`);
+              }
+            }
+
+          }
+
+  }
+
   //Get One Card for Trazability
   async reportsCards(id: bigint) {
     const getTrazabilidad = async (cartaId: bigint): Promise<any> => {
@@ -314,11 +349,7 @@ export class CardsService {
   async pendingCard(id: number, pendingCardDto: PendingCardDto){
     const {devuelto, ...rest} = pendingCardDto
 
-    let estado;
-
-    if (!devuelto) {
-      estado = "Pendiente"
-    }
+    let estado = "Pendiente";
 
     return this.prisma.carta.update({
       where: { id },
