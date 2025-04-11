@@ -326,16 +326,28 @@ export class CardsService {
       }
 
     }
-
+    //if else, al llegar referencia con valor 0, uso para que no exista error en referenca
+    if (referencia) {
+      return this.prisma.carta.create({
+        data: {
+          ...rest,
+          subAreaId,
+          referencia,
+          urgente,
+          nivelImpacto
+        },
+      });      
+    } else {
     return this.prisma.carta.create({
       data: {
         ...rest,
         subAreaId,
-        referencia,
         urgente,
         nivelImpacto
       },
     });
+    }
+
   }
 
   async assignedCard(id: number, assignedCardDto: AssignedCardDto ){
