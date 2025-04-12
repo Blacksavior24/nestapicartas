@@ -10,6 +10,7 @@ export class FileuploadService {
 
     const path = join( __dirname, '../../files/', imageName);
 
+    console.log("path finaly", path)
     if (!existsSync(path)) {
       throw new BadRequestException(`No existe el archivo`)
     }

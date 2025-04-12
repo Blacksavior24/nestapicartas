@@ -282,7 +282,17 @@ export class CardsService {
   }
   //Create card for Assing Form
   async createReceivedCard(receivedCardDto: ReceivedCardDto) {
-    const {referencia,  subAreaId,urgente,correosCopia, nivelImpacto , ...rest} = receivedCardDto
+    const {referencia,  subAreaId,urgente,correosCopia, nivelImpacto ,codigoRecibido , ...rest} = receivedCardDto
+    
+    if (codigoRecibido) {
+      const cartaExistente = await this.prisma.carta.findFirst({
+        where: { codigoRecibido: codigoRecibido}
+      });
+      if (cartaExistente) {
+        throw new BadRequestException('Una carta con ese código ya existe');
+      }
+    }
+
     if (referencia) {
       const cartaAnterior = await this.prisma.carta.findUnique({
         where: { id: referencia}
@@ -331,6 +341,7 @@ export class CardsService {
       return this.prisma.carta.create({
         data: {
           ...rest,
+          codigoRecibido,
           subAreaId,
           referencia,
           urgente,
@@ -341,6 +352,7 @@ export class CardsService {
     return this.prisma.carta.create({
       data: {
         ...rest,
+        codigoRecibido,
         subAreaId,
         urgente,
         nivelImpacto
