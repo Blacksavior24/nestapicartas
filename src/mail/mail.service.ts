@@ -28,14 +28,31 @@ export class MailService {
     });
   }
 
-  async sendNotification(email: NotiMailDto) {
+  async sendNotification(email: NotiMailDto, cartasPendientes: any[] = []) {
+
+    const cartasParaTemplate = cartasPendientes.map(carta => ({
+      id: carta.id,
+      asunto: carta.asunto || 'Sin asunto',
+      resumenRecibido: carta.resumenRecibido || 'Resumen no especificado',
+      fechaIngreso: carta.fechaIngreso ? new Date(carta.fechaIngreso).toLocaleDateString() : 'No especificada',
+      diasPendiente: carta.fechaIngreso ? 
+        Math.floor((new Date().getTime() - new Date(carta.fechaIngreso).getTime()) / (1000 * 60 * 60 * 24)) : 'N/A'
+    }));
+  
+    this.logger.log('Llegamos aqui', cartasParaTemplate.length)
     const mailOptions = {
       to: email.email,
-      subject: 'PENDIENTES DE CARTAS',
+      subject: cartasPendientes.length > 1 ? 
+        `TIENES ${cartasPendientes.length} CARTAS PENDIENTES` : 
+        'TIENES UNA CARTA PENDIENTE',
       template: './notification_email',
       context: {
-        message: `Hola ${email.nombre}, tienes una carta que atender`,
-        link: `${process.env.HOST_API}`
+        nombre: email.nombre,
+        totalCartas: cartasPendientes.length,
+        cartas: cartasParaTemplate,
+        link: `${process.env.HOST_API}`,
+        fechaActual: new Date().toLocaleDateString(),
+        year: '2025'
       },
     };
   
@@ -46,10 +63,9 @@ export class MailService {
   
     try {
       await this.mailerService.sendMail(mailOptions);
-      this.logger.log(`Correo enviado correctamente a ${email.email}`);
+      this.logger.log(`Correo enviado correctamente a ${email.email} con ${cartasPendientes.length} cartas`);
     } catch (error) {
       this.logger.error(`Error al enviar correo a ${email.email}: ${error.message}`);
-      //throw error; // Opcional: relanzar el error si es necesario
     }
   }
 

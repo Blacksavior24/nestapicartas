@@ -46,6 +46,15 @@ export class CardsController {
     return this.cardsService.findAllEmision();
   }
 
+  @Get('stats/:userId')
+  @ApiOperation({ summary: 'Obtener las cantidades' })
+  @ApiResponse({ status: 200, description: 'Cantidades obtenidas correctamente' })
+  @ApiResponse({ status: 404, description: 'No se encontraron cantidades' })
+  findStats(@Param('userId') userId:string ){
+    const idBigInt = BigInt(userId)
+    return this.cardsService.findStats(idBigInt)
+  } 
+
   @Get('pending/:subareaId')
   @ApiOperation({ summary: 'Obtener todas las Cartas Emitidas' })
   @ApiResponse({ status: 200, description: 'Cartas obtenidas exitosamente' })

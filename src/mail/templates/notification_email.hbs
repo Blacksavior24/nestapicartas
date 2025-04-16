@@ -1,26 +1,139 @@
-<body style="background-color: #f3f4f6; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
-    <div style="background-color: #ffffff; padding: 32px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 448px; width: 100%;">
-        <div style="text-align: center;">
-            <!-- Icono de carta -->
-            <svg xmlns="http://www.w3.org/2000/svg" style="height: 64px; width: 64px; color: #3b82f6; margin: 0 auto;" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-            </svg>
-            <!-- Título dinámico -->
-            <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin-top: 16px;">
-                PORTAL DE CARTAS GRUPO SUR
-            </h1>
-            <!-- Mensaje dinámico -->
-            <p style="color: #4b5563; margin-top: 8px;">
-                {{message}}
-            </p>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificación de Cartas Pendientes</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eaeaea;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        .priority-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .priority-medium {
+            color: #fd7e14;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eaeaea;
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Portal de Cartas Grupo Sur</h1>
+            <div class="badge badge-warning">
+                {{totalCartas}} carta(s) pendiente(s) de revisión
+            </div>
         </div>
-        
-        <!-- Botón de acción -->
-        <div style="margin-top: 24px;">
-            <a href="{{link}}" style="display: inline-block; width: 100%; background-color: #3b82f6; color: #ffffff; text-align: center; font-weight: 600; padding: 12px 16px; border-radius: 8px; text-decoration: none;">
-                Ingresar al Portal
-            </a>
+
+        <p>Hola <strong>{{nombre}}</strong>,</p>
+        <p>Tienes las siguientes cartas pendientes de atención:</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Asunto</th>
+                    <th>Resumen Recibido</th>
+                    <th>Fecha Ingreso</th>
+                    <th>Días Pendiente</th>
+                    <th>Prioridad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each cartas}}
+                <tr>
+                    <td>#{{id}}</td>
+                    <td>{{asunto}}</td>
+                    <td>{{resumenRecibido}}</td>
+                    <td>{{fechaIngreso}}</td>
+                    <td>{{diasPendiente}}</td>
+                    {{!-- <td class="{{#if (eq prioridad 'Alta')}}priority-high{{else if (eq prioridad 'Media')}}priority-medium{{/if}}">
+                        {{prioridad}}
+                    </td> --}}
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{link}}" class="btn">Ir al Portal de Cartas</a>
+        </div>
+
+        <div class="footer">
+            <p>Fecha de notificación: {{fechaActual}}</p>
+            <p>© {{year}} Portal de Cartas Grupo Sur. Todos los derechos reservados.</p>
         </div>
     </div>
 </body>
+</html>

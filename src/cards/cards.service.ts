@@ -20,13 +20,14 @@ export class CardsService {
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_10AM)
-  async handleCron(){
-    this.logger.debug('Enviando correos cada 10 minutos')
-
-    const today = new Date()
-    const todayDateString =  new Date(today.setHours(23, 59, 59, 999));
-
-    const data = await this.prisma.carta.findMany({
+  async handleCron() {
+    this.logger.debug('Iniciando proceso de envío de correos para cartas pendientes');
+  
+    const today = new Date();
+    const todayDateString = new Date(today.setHours(23, 59, 59, 999));
+  
+    // Procesar cartas nuevas que deben ser enviadas por primera vez
+    const newCards = await this.prisma.carta.findMany({
       where: {
         estado: "Ingresado",
         fechaEnvio: null,
@@ -35,45 +36,128 @@ export class CardsService {
         }
       },
       include: { subArea: true }
-    })
-    console.log("se muestra")    
-    // Iterar sobre cada carta encontrada
-    for (const carta of data) {
-      // Buscar los usuarios que pertenecen a la subárea de la carta
-      const usuarios = await this.prisma.usuario.findMany({
-        where: {
-          subAreaId: carta.subAreaId,
-        },
-      });
-      console.log("entramos")
-      // Enviar un correo a cada usuario de la subárea
-      for (const usuario of usuarios) {
-        let email = {
+    });
+  
+    this.logger.log(`Cartas nuevas encontradas: ${newCards.length}`);
+  
+    // Procesar cartas pendientes que necesitan recordatorio
+    const pendingCards = await this.prisma.carta.findMany({
+      where: {
+        estado: "PendienteArea",
+        informativo: false,
+        // fechaEnvio: {
+        //   lt: new Date(new Date().setDate(new Date().getDate() - 1))
+        // }
+      },
+      include: { subArea: true }
+    });
+  
+    this.logger.log(`Cartas pendientes encontradas: ${pendingCards.length}`);
+  
+    // Si no hay cartas nuevas ni pendientes, no hacer nada
+    if (newCards.length === 0 && pendingCards.length === 0) {
+      this.logger.debug('No hay cartas para procesar. Saliendo...');
+      return;
+    }
+  
+    // Agrupar cartas por subárea para optimizar notificaciones
+    const cartasPorSubArea = new Map<bigint, {new: any[], pending: any[]}>();
+  
+    // Procesar cartas nuevas
+    for (const carta of newCards) {
+      if (!cartasPorSubArea.has(carta.subAreaId)) {
+        cartasPorSubArea.set(carta.subAreaId, {new: [], pending: []});
+      }
+      cartasPorSubArea.get(carta.subAreaId).new.push(carta);
+    }
+  
+    // Procesar cartas pendientes
+    for (const carta of pendingCards) {
+      if (!cartasPorSubArea.has(carta.subAreaId)) {
+        cartasPorSubArea.set(carta.subAreaId, {new: [], pending: []});
+      }
+      cartasPorSubArea.get(carta.subAreaId).pending.push(carta);
+    }
+  
+    // Procesar cada subárea
+    for (const [subAreaId, cartas] of cartasPorSubArea.entries()) {
+      await this.processSubArea(subAreaId, cartas.new, cartas.pending);
+    }
+  }
+  
+  private async processSubArea(subAreaId: bigint, newCards: any[], pendingCards: any[]) {
+    // Buscar usuarios de la subárea
+    const usuarios = await this.prisma.usuario.findMany({
+      where: { subAreaId },
+    });
+  
+    if (usuarios.length === 0) {
+      this.logger.warn(`Subárea ${subAreaId} no tiene usuarios asignados`);
+      return;
+    }
+  
+    // Combinar todas las cartas
+    const allCards = [...newCards, ...pendingCards];
+    
+    // Si no hay cartas, no hacer nada
+    if (allCards.length === 0) {
+      return;
+    }
+    this.logger.log(`Cantidad de cartas a enviar ${allCards.length}`)
+    // 1. Agrupar cartas por su lista de CC (creamos un hash único para cada combinación de CC)
+    const gruposCC = new Map<string, any[]>();
+    
+    for (const carta of allCards) {
+      // Normalizar los CC: ordenar alfabéticamente y eliminar duplicados
+      const ccNormalizados = Array.from(new Set(carta.correosCopia || []))
+        .sort()
+        .join(';');
+      
+      if (!gruposCC.has(ccNormalizados)) {
+        gruposCC.set(ccNormalizados, []);
+      }
+      gruposCC.get(ccNormalizados).push(carta);
+    }
+  
+    // 2. Procesar cada grupo de CC
+    for (const usuario of usuarios) {
+      for (const [ccKey, cartas] of gruposCC.entries()) {
+        const ccList = ccKey.split(';').filter(Boolean); // Convertir de vuelta a array
+        
+        const email = {
           email: usuario.email,
           nombre: usuario.nombre,
-          cc: carta.correosCopia || []
+          cc: ccList // Usar solo los CC correspondientes a este grupo
         };
+  
         try {
-          this.mail.sendNotification(email); // No usamos await para no bloquear el flujo
-          this.logger.log(`Correo enviado a ${usuario.email} sobre la carta ${carta.id}`);
+          await this.mail.sendNotification(email, cartas);
+          this.logger.log(
+            `Correo enviado a ${usuario.email} con ${cartas.length} cartas ` +
+            `(CC: ${ccList.length > 0 ? ccList.join(', ') : 'ninguno'})`
+          );
         } catch (error) {
           this.logger.error(`Error al enviar correo a ${usuario.email}: ${error.message}`);
         }
       }
-      
-      // Actualizar la carta para marcar que ha sido enviada
-      await this.prisma.carta.update({
-        where: { id: carta.id },
+    }
+  
+    // 3. Actualizar cartas nuevas (marcar como enviadas)
+    if (newCards.length > 0) {
+      await this.prisma.carta.updateMany({
+        where: {
+          id: { in: newCards.map(c => c.id) }
+        },
         data: { 
           fechaEnvio: new Date(),
           estado: "PendienteArea" 
         },
       });
-
-      this.logger.log(`Carta ${carta.id} marcada como enviada.`);
+      this.logger.log(`${newCards.length} cartas nuevas marcadas como enviadas`);
     }
-  }
   
+    
+  }
 
 
   //Create a card 
@@ -517,5 +601,127 @@ export class CardsService {
   }
 
 
+  async findStats(userId: bigint) {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+      include: { rol: true, subArea: true }
+    });
+  
+    if (!usuario) throw new Error('Usuario no encontrado');
+  
+    const isAdmin = usuario.rol.nombre === 'admin';
+    const subAreaId = usuario.subAreaId;
+    const now = new Date();
+  
+    // Consultas base para todos los usuarios
+    const baseQueries = {
+      enPosesion: !isAdmin ? this.prisma.carta.count({
+        where: { 
+          subAreaId,
+          estado: 'PendienteArea'
+        }
+      }) : Promise.resolve(0),
+      
+      respondidas: this.prisma.carta.count({
+        where: isAdmin 
+          ? { estado: 'Cerrado' }
+          : { subAreaId, estado: 'Cerrado' }
+      }),
+      
+      informativas: this.prisma.carta.count({
+        where: isAdmin
+          ? { informativo: true }
+          : { subAreaId, informativo: true }
+      }),
+      
+      urgentes: this.prisma.carta.count({
+        where: isAdmin
+          ? { estado: 'PendienteArea', urgente: true }
+          : { subAreaId, estado: 'PendienteArea', urgente: true }
+      }),
+      
+      vencidas: this.prisma.carta.count({
+        where: isAdmin
+          ? { 
+              vencimiento: true, 
+              fechadevencimiento: { lt: now },
+              estado: { not: 'Cerrado' }
+            }
+          : { 
+              subAreaId,
+              vencimiento: true,
+              fechadevencimiento: { lt: now },
+              estado: { not: 'Cerrado' }
+            }
+      }),
+      
+      total: isAdmin
+        ? this.prisma.carta.count()
+        : this.prisma.carta.count({ where: { subAreaId } })
+    };
+  
+    // Consultas específicas para admin (KPIs)
+    const adminQueries = isAdmin ? {
+      pendientesGlobal: this.prisma.carta.count({ 
+        where: { estado: { in: ['Pendiente', 'PendienteArea'] } }
+      }),
+      
+      respondidasFueraPlazo: this.prisma.$queryRaw<{count: bigint}[]>`
+      SELECT COUNT(*)::bigint 
+      FROM "Carta"
+      WHERE estado = 'Cerrado'
+      AND "fechaEnvio" IS NOT NULL
+      AND "fechadevencimiento" IS NOT NULL
+      AND "fechadevencimiento" < "fechaEnvio"
+    `,
+      
+          // Tiempo promedio de respuesta en días (solo cartas cerradas)
+        tiempoPromedio: this.prisma.$queryRaw<{ avg_days: number }[]>`
+        SELECT AVG(
+          EXTRACT(EPOCH FROM ("fechaEnvio" - "fechaIngreso"))/86400
+        )::integer as avg_days
+        FROM "Carta"
+        WHERE estado = 'Cerrado'
+        AND "fechaEnvio" IS NOT NULL
+        AND "fechaIngreso" IS NOT NULL
+      `
+    } : null;
+  
+    // Ejecutar consultas en paralelo
+    const [baseResults, adminResults] = await Promise.all([
+      Promise.all(Object.values(baseQueries)),
+      isAdmin ? Promise.all(Object.values(adminQueries!)) : Promise.resolve([])
+    ]);
+    // Formatear resultados
+    const stats: any = {
+      cartasEnPosesion: !isAdmin ? baseResults[0] : undefined,
+      cartasRespondidas: baseResults[1],
+      cartasInformativas: baseResults[2],
+      cartasUrgentes: baseResults[3],
+      cartasVencidas: baseResults[4],
+      total: baseResults[5],
+      porcentajeRespuesta: Math.round((baseResults[1] / (baseResults[5] || 1)) * 100)
+    };
+  
+     // Agregar KPIs para admin
+      if (isAdmin && adminResults.length > 0) {
+        const fueraPlazoCount = adminResults[1]?.[0]?.count || 0;
+        
+        stats.kpis = {
+          pendientesGlobales: adminResults[0],
+          tasaRespuesta: baseResults[5] > 0 
+            ? Number((baseResults[1] / baseResults[5]).toFixed(2))
+            : 0,
+          eficienciaPlazos: baseResults[1] > 0
+            ? Number(((baseResults[1] - adminResults[1]) / baseResults[1]).toFixed(2))
+            : 0,
+          tiempoPromedioDias: adminResults[2]?.[0]?.avg_days || 0,
+          respondidasFueraPlazo: Number(fueraPlazoCount)
+        };
+      }
+    
+  
+    return stats;
+  }
 
 }
