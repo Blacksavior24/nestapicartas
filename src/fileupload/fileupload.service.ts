@@ -1,19 +1,30 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { CreateFileuploadDto } from './dto/create-fileupload.dto';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FileuploadService {
   private readonly logger = new Logger(FileuploadService.name)
-  getStaticProductImage ( imageName: string ){
+  private readonly uploadPath: string;
 
-    const path = join( __dirname, '../../files/', imageName);
+  constructor(
+    private readonly configService: ConfigService
+  ){
+    const isProduction = this.configService.get('NODE_ENV') === 'prod';
+    this.uploadPath = isProduction 
+      ? join(__dirname, '../files/')  // En producción, desde dist/files/
+      : join(__dirname, '../../files/'); // En desarrollo, desde src/files/
 
-    console.log("path finaly", path)
-    this.logger.log(`path finaly ${path}`)
+    this.logger.log(`File upload path configured for ${isProduction ? 'production' : 'development'}: ${this.uploadPath}`);
+  }
+
+  getStaticProductImage(imageName: string) {
+    const path = join(this.uploadPath, imageName);
+
+    this.logger.log(`Resolved file path: ${path}`);
     if (!existsSync(path)) {
-      throw new BadRequestException(`No existe el archivo`)
+      throw new BadRequestException(`No product found with image ${imageName}`);
     }
 
     return path;
